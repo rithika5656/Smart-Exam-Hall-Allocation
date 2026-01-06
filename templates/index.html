@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Exam Hall Allocation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .status-bar {
+            display: flex;
+            justify-content: space-around;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .status-item {
+            text-align: center;
+        }
+        
+        .status-item .number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .status-item .label {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        #results {
+            margin-top: 20px;
+        }
+        
+        .allocation-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .allocation-table th, .allocation-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .allocation-table th {
+            background: #667eea;
+            color: white;
+        }
+        
+        .allocation-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .seat-grid {
+            display: grid;
+            gap: 5px;
+            margin-top: 15px;
+        }
+        
+        .seat {
+            padding: 8px;
+            text-align: center;
+            border-radius: 5px;
+            font-size: 11px;
+            background: #e0e0e0;
+        }
+        
+        .seat.occupied {
+            background: #667eea;
+            color: white;
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .halls-list {
+            margin-top: 15px;
+        }
+        
+        .hall-item {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 Smart Exam Hall Allocation</h1>
+        
+        <div class="card">
+            <div class="status-bar">
+                <div class="status-item">
+                    <div class="number" id="hallCount">0</div>
+                    <div class="label">Halls</div>
+                </div>
+                <div class="status-item">
+                    <div class="number" id="studentCount">0</div>
+                    <div class="label">Students</div>
+                </div>
+                <div class="status-item">
+                    <div class="number" id="allocatedCount">0</div>
+                    <div class="label">Allocated</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid">
+            <div class="card">
+                <h2>📍 Add Exam Hall</h2>
+                <div class="form-group">
+                    <label>Hall Name</label>
+                    <input type="text" id="hallName" placeholder="e.g., Hall A">
+                </div>
+                <div class="form-group">
+                    <label>Rows</label>
+                    <input type="number" id="hallRows" value="5" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Columns (Seats per row)</label>
+                    <input type="number" id="hallCols" value="6" min="1">
+                </div>
+                <button class="btn" onclick="addHall()">Add Hall</button>
+                <div id="hallsList" class="halls-list"></div>
+            </div>
+            
+            <div class="card">
+                <h2>👥 Add Students</h2>
+                <div class="form-group">
+                    <label>Student Names/Roll Numbers (comma separated)</label>
+                    <textarea id="studentNames" rows="5" placeholder="Enter student names separated by commas&#10;e.g., John, Jane, Bob, Alice"></textarea>
+                </div>
+                <button class="btn" onclick="addStudents()">Add Students</button>
+                <button class="btn btn-success" onclick="generateSampleStudents()">Generate Sample</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>⚙️ Actions</h2>
+            <button class="btn btn-success" onclick="allocateStudents()">🚀 Allocate Students</button>
+            <button class="btn btn-danger" onclick="resetAll()">🔄 Reset All</button>
+        </div>
+        
+        <div class="card" id="resultsCard" style="display: none;">
+            <h2>📊 Allocation Results</h2>
+            <div id="results"></div>
+        </div>
+    </div>
+    
+    <script>
+        let halls = [];
+        
+        async function updateStatus() {
+            const response = await fetch('/get_status');
+            const data = await response.json();
+            document.getElementById('hallCount').textContent = data.halls;
+            document.getElementById('studentCount').textContent = data.students;
+            document.getElementById('allocatedCount').textContent = data.allocated;
+        }
+        
+        async function addHall() {
+            const name = document.getElementById('hallName').value;
+            const rows = document.getElementById('hallRows').value;
+            const cols = document.getElementById('hallCols').value;
+            
+            if (!name) {
+                alert('Please enter a hall name');
+                return;
+            }
+            
+            const response = await fetch('/add_hall', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name, rows, cols})
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                halls.push(data.hall);
+                updateHallsList();
+                document.getElementById('hallName').value = '';
+                updateStatus();
+            }
+            alert(data.message);
+        }
+        
+        function updateHallsList() {
+            const list = document.getElementById('hallsList');
+            list.innerHTML = halls.map(h => `
+                <div class="hall-item">
+                    <span><strong>${h.name}</strong></span>
+                    <span>${h.rows} × ${h.cols} = ${h.capacity} seats</span>
+                </div>
+            `).join('');
+        }
+        
+        async function addStudents() {
+            const students = document.getElementById('studentNames').value;
+            
+            if (!students.trim()) {
+                alert('Please enter student names');
+                return;
+            }
+            
+            const response = await fetch('/add_students', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({students})
+            });
+            
+            const data = await response.json();
+            alert(data.message);
+            document.getElementById('studentNames').value = '';
+            updateStatus();
+        }
+        
+        function generateSampleStudents() {
+            const students = [];
+            for (let i = 1; i <= 25; i++) {
+                students.push(`STU${String(i).padStart(3, '0')}`);
+            }
+            document.getElementById('studentNames').value = students.join(', ');
+        }
+        
+        async function allocateStudents() {
+            const response = await fetch('/allocate', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                alert(data.message);
+                return;
+            }
+            
+            displayResults(data);
+            updateStatus();
+        }
+        
+        function displayResults(data) {
+            const resultsCard = document.getElementById('resultsCard');
+            const results = document.getElementById('results');
+            resultsCard.style.display = 'block';
+            
+            let html = `
+                <div class="message success">
+                    ✅ Successfully allocated ${data.summary.allocated_students} out of ${data.summary.total_students} students
+                </div>
+                <h3 style="margin-top: 20px;">Allocation Details</h3>
+                <table class="allocation-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Hall</th>
+                            <th>Row</th>
+                            <th>Seat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            for (const [student, details] of Object.entries(data.allocations)) {
+                html += `
+                    <tr>
+                        <td>${student}</td>
+                        <td>${details.hall}</td>
+                        <td>${details.row}</td>
+                        <td>${details.seat}</td>
+                    </tr>
+                `;
+            }
+            
+            html += '</tbody></table>';
+            
+            html += '<h3 style="margin-top: 20px;">Hall Occupancy</h3>';
+            for (const hall of data.summary.halls_used) {
+                const percentage = ((hall.occupied / hall.capacity) * 100).toFixed(1);
+                html += `
+                    <div class="hall-item">
+                        <span><strong>${hall.name}</strong></span>
+                        <span>${hall.occupied} / ${hall.capacity} seats (${percentage}%)</span>
+                    </div>
+                `;
+            }
+            
+            results.innerHTML = html;
+        }
+        
+        async function resetAll() {
+            if (!confirm('Are you sure you want to reset all data?')) return;
+            
+            await fetch('/reset', {method: 'POST'});
+            halls = [];
+            updateHallsList();
+            document.getElementById('resultsCard').style.display = 'none';
+            updateStatus();
+            alert('All data has been reset');
+        }
+        
+        // Initialize
+        updateStatus();
+    </script>
+</body>
+</html>
